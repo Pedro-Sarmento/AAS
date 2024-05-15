@@ -1,6 +1,8 @@
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class ZookeeperClient {
@@ -36,7 +38,18 @@ public class ZookeeperClient {
         zoo.close();
     }
 
+    public void registerNewServer(String path, byte[] data) throws KeeperException, InterruptedException{
+        Stat stat = zoo.exists(path, false);
+        if(stat == null){
+            zoo.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        } else{
+            zoo.setData(path, data, stat.getVersion());
+        }
+    }
 
+    public String selectBestServer() throws KeeperException, InterruptedException{
+        List<String> servers= zoo.getChildren()
+    }
 
     public void createEPH(String path, String name) throws KeeperException, InterruptedException{
             byte[] data = name.getBytes();
