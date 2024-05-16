@@ -1,3 +1,5 @@
+package Database;
+
 import static com.mongodb.client.model.Filters.eq;
 
 import org.bson.Document;
@@ -13,7 +15,7 @@ import java.util.Date;
 
 public class Database {
         private static final String MongoDBURI = "mongodb://localhost:27017";
-        private static volatile MongoClient mongoclient;
+        private static volatile MongoClient mongoclient = getClient();
         private static volatile MongoDatabase database;
 
         public static MongoClient getClient() {
@@ -23,15 +25,17 @@ public class Database {
             return mongoclient;
         }
 
-        public static MongoCollection<Document> GetCollection( String Database, String Collection, String URI ) {
 
+
+        public static MongoCollection<Document> GetCollection( String Database, String Collection) {
+                String URI = MongoDBURI;
                 MongoClient mongoClient = getClient();
                 MongoDatabase database = mongoClient.getDatabase(Database);
                 return database.getCollection(Collection);
         }
 
         public static void AddUser(String username, String password, int userID){
-            MongoCollection<Document> collection = GetCollection("Users", "UserInfo", MongoDBURI);
+            MongoCollection<Document> collection = GetCollection("Users", "UserInfo");
 
             Document user_info = new Document();
 
@@ -43,14 +47,14 @@ public class Database {
         }
 
         public static void DeleteUser(int userID){
-            MongoCollection<Document> collection = GetCollection("Users", "UserInfo", MongoDBURI);
+            MongoCollection<Document> collection = GetCollection("Users", "UserInfo");
             Bson deleteFilter = eq("userID", userID);
 
             collection.deleteOne(deleteFilter);
         }
 
         public static void SendMessage(String sender, String[] receivers, String message_content){
-            MongoCollection<Document> collection = GetCollection("Chats", "messages", MongoDBURI);
+            MongoCollection<Document> collection = GetCollection("Chats", "messages");
 
             Document message_document = new Document();
 
@@ -60,7 +64,6 @@ public class Database {
                     .append("message", message_content);
 //                    .append("metadata", new Document("type", "text")
 //                            .append("status", "sent"));
-
             collection.insertOne(message_document);
 
         }
@@ -68,12 +71,19 @@ public class Database {
         public static void DeleteMessage(String sender, String[] receivers, String message_content){}
 
         public static String ReadMessages(String chatName){
-            MongoCollection<Document> collection = GetCollection("Chats", chatName, MongoDBURI);
-
+            MongoCollection<Document> collection = GetCollection("Chats", chatName);
             return "FALTA FAZER";
         }
-        public static String[] GetDocuments(MongoCollection<Document> collection){
 
+        public static long getChatLenght(String collectionName){
+            MongoCollection<Document> collection = GetCollection("Chats", collectionName);
+            return collection.countDocuments();
+        }
+
+        public static MongoCollection<Document> GetDocuments(String collection){
+            String[] asd = null;
+            MongoCollection<Document>  asds = null;
+            return asds;
         }
         public static void main(String[] args){
 //            AddUser("teste", "1234", 123);

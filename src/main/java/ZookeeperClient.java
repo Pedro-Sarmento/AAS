@@ -1,3 +1,6 @@
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Projections;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 
@@ -5,12 +8,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import Database.Database;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
 public class ZookeeperClient {
     private ZooKeeper zoo;
     CountDownLatch connectionLatch = new CountDownLatch(1);
     private static final String host = "localhost:2181";
-
-
+    private Database database = new Database();
+    
     public ZooKeeper connect() throws IOException, InterruptedException {
          zoo = new ZooKeeper(host, 3000, new Watcher(){
              public void process(WatchedEvent we){
@@ -48,12 +56,43 @@ public class ZookeeperClient {
     }
 
     public String selectBestServer() throws KeeperException, InterruptedException{
-        List<String> servers= zoo.getChildren()
+        List<String> servers= zoo.getChildren("/servers", false);
+        String bestServer = null;
+        int minLoad = Integer.MAX_VALUE;
+        for(String server : servers){
+            byte[] serverData = zoo.getData("/servers/ +server", false, null);
+            int load = Integer.parseInt(new String(serverData));
+            if(load < minLoad){
+                minLoad = load;
+                bestServer = server;
+            }
+        }
+        return bestServer;
     }
 
     public void createEPH(String path, String name) throws KeeperException, InterruptedException{
             byte[] data = name.getBytes();
             zoo.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
         }
+
+    public void createPerm(String path, String name) throws KeeperException, InterruptedException{
+        byte[] data = name.getBytes();
+        zoo.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
+    public String[] getMessages(String chatName){
+        long ChatLenght = database.getChatLenght(chatName);
+        String[] message_list = new String[(int) ChatLenght];
+        int count = 0;
+
+        MongoCollection<Document> collection = database.GetCollection("Chats", chatName);
+        FindIterable<Document> documents = collection.find().projection(Projections.include("message"));
+        for(Document doc: documents){
+            String message = doc.toString();
+            message_list[count] = message;
+            count++;
+        }
+        return message_list;
+    }
 
 }
