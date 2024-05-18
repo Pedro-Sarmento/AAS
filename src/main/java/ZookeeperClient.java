@@ -5,6 +5,7 @@ import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -80,19 +81,16 @@ public class ZookeeperClient {
         zoo.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
 
-    public String[] getMessages(String chatName){
-        long ChatLenght = database.getChatLenght(chatName);
-        String[] message_list = new String[(int) ChatLenght];
-        int count = 0;
+    public List<List<String>> getMessages(String chatName){
+        List<List<String>> messageList = new ArrayList<>();
 
         MongoCollection<Document> collection = database.GetCollection("Chats", chatName);
-        FindIterable<Document> documents = collection.find().projection(Projections.include("message"));
-        for(Document doc: documents){
-            String message = doc.toString();
-            message_list[count] = message;
-            count++;
+        FindIterable<Document> docs = collection.find();
+        for(Document doc: docs){
+            List <String> messageInfo = List.of(doc.getString("sender"), doc.getString("message"), doc.getString("timestamp"));
+            messageList.add(messageInfo);
         }
-        return message_list;
+        return messageList;
     }
 
 }

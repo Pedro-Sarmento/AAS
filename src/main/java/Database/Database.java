@@ -65,7 +65,7 @@ public class Database {
         public static String ReadMessages(){
             MongoCollection<Document> collection = GetCollection("Chats", "messages");
             Document document1 = collection.find(new Document("sender", "teste")).first();
-            return document1["sender"].toString();
+            return document1.getString("sender");
         }
 
         public static long getChatLenght(String collectionName){
