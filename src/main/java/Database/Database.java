@@ -2,15 +2,14 @@ package Database;
 
 import static com.mongodb.client.model.Filters.eq;
 
+import com.mongodb.client.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
+import java.util.ArrayList;
 import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.List;
 
 public class Database {
         private static final String MongoDBURI = "mongodb://localhost:27017";
@@ -54,9 +53,10 @@ public class Database {
             MongoCollection<Document> collection = GetCollection("Chats", "messages");
 
             Document message_document = new Document();
+            String timestamp = new SimpleDateFormat("HH:mm,MM-dd").format(new Date());
 
             message_document.append("sender", sender)
-                    .append("timestamp", new Date())
+                    .append("timestamp", timestamp)
                     .append("message", message_content);
             collection.insertOne(message_document);
 
@@ -68,21 +68,12 @@ public class Database {
             return document1.getString("sender");
         }
 
-        public static long getChatLenght(String collectionName){
-            MongoCollection<Document> collection = GetCollection("Chats", collectionName);
-            return collection.countDocuments();
-        }
 
-        public static MongoCollection<Document> GetDocuments(String collection){
-            String[] asd = null;
-            MongoCollection<Document>  asds = null;
-            return asds;
-        }
-        public static void main(String[] args){
+    public static void main(String[] args){
 //            AddUser("teste", "1234", 123);
 //            DeleteUser(123);
 //            SendMessage("teste", "Hello World!");
-            System.out.println(ReadMessages());
+//            System.out.println(getMessages("messages"));
         }
     }
 
