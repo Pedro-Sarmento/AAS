@@ -92,5 +92,6 @@ public class ServerChat implements WebSocketMessageBrokerConfigurer {
         double systemLoad = osBean.getSystemLoadAverage();
         int adjustedLoad = Math.min(100, (int) (systemLoad * 100.0));
         updateLoad(adjustedLoad);
+        s
     }
 }
