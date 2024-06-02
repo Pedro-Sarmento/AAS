@@ -25,11 +25,11 @@ import com.example.demo.services.UserService;
 @SpringBootApplication
 @EnableWebSocketMessageBroker
 public class ServerChat implements WebSocketMessageBrokerConfigurer {
-
-    private ZookeeperClient zooKeeperClient;
+    private final ZookeeperClient zooKeeperClient;
     private AtomicInteger currentLoad = new AtomicInteger(0);
     private String serverNodePath;
-    private final SimpMessagingTemplate messagingTemplate;
+    private SimpMessagingTemplate messagingTemplate;
+
 
     @Autowired
     public ServerChat(ZookeeperClient zooKeeperClient) throws IOException {
@@ -58,7 +58,7 @@ public class ServerChat implements WebSocketMessageBrokerConfigurer {
             zooKeeperClient.registerNewServer(serverNodePath, zooKeeperClient.getHost(), Integer.parseInt(String.valueOf(currentLoad.get())));
             measureSystemLoad();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("ERRO" + e.getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ public class ServerChat implements WebSocketMessageBrokerConfigurer {
         messagingTemplate.convertAndSend(destination, message);
     }
 
-    //AQUI
+    //Method that will receive the parameters from the zookeeperclient and now verify them in mongoDB
     @PostMapping("/send-login")
     public String sendLogin(@RequestParam String username, @RequestParam String password) {
         User client = UserService.findByUsername(username);
@@ -105,6 +105,14 @@ public class ServerChat implements WebSocketMessageBrokerConfigurer {
             return "User already exists";
         }
     }
+
+
+
+
+
+
+
+
 
     public void updateLoad(boolean increase) {
         int newLoad = increase ? currentLoad.incrementAndGet() : currentLoad.decrementAndGet();

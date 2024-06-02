@@ -24,23 +24,16 @@ public class ZookeeperClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public ZooKeeper connect() throws IOException, InterruptedException {
-         zoo = new ZooKeeper(host, 3000, new Watcher(){
-             public void process(WatchedEvent we){
-                 if (we.getState() == Event.KeeperState.Expired) {
-                 try{
-                     reconnect();
-                 } catch(IOException e){
-                     e.printStackTrace();
-                 }
-                 }
-                 if (we.getState() == Event.KeeperState.SyncConnected){
-                     connectionLatch.countDown();
-                 }
-             }
-         });
-         connectionLatch.await();
-         return zoo;
+    public ZookeeperClient() throws IOException {
+        this.zoo = new ZooKeeper(host, 3000, watchedEvent -> {
+            if (watchedEvent.getState() == Watcher.Event.KeeperState.Expired) {
+                try {
+                    reconnect();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void reconnect() throws IOException{
@@ -121,14 +114,44 @@ public class ZookeeperClient {
     public String sendLogin(@RequestBody String username, @RequestBody String password) {
         try {
             String bestServer = selectBestServer();
-            String serverUrl = "http://" + bestServer + ":8080/send-login";
-            restTemplate.postForObject(serverUrl, null, String.class, username, password);
+            String serverUrl = "https://" + bestServer + ":8080/send-login";
+            return restTemplate.postForObject(serverUrl, null, String.class, username, password);
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
-        return "";
-
     }
+
+    @PostMapping("/send-register")
+    public String sendRegister(@RequestBody String username, @RequestBody String password) {
+        try {
+            String bestServer = selectBestServer();
+            String serverUrl = "https://" + bestServer + ":8081/send-register";
+            return restTemplate.postForObject(serverUrl, null, String.class, username,password);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    public void createNode(String path) throws KeeperException, InterruptedException {
+        this.zoo.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
+    public boolean nodeExists(String path) throws KeeperException, InterruptedException {
+        return this.zoo.exists(path, false) != null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
     public String sendMessage(@RequestParam String from, @RequestParam String to, @RequestParam String content) {
         try {
             String bestServer = selectBestServer();
@@ -139,4 +162,5 @@ public class ZookeeperClient {
             return "Error: " + e.getMessage();
         }
     }
+
 }
