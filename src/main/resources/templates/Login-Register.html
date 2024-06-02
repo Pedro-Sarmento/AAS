@@ -78,7 +78,7 @@
             <input type="password" id="login-password" placeholder="Enter your password">
         </div>
         <div class="form-group">
-            <button type="button">Login</button>
+            <button type="button" onclick="login()">Login</button>
         </div>
         <a class="toggle-link" onclick="toggleForms()">Don't have an account? Register here</a>
     </div>
@@ -94,7 +94,7 @@
             <input type="password" id="register-password" placeholder="Enter your password">
         </div>
         <div class="form-group">
-            <button type="button">Register</button>
+            <button type="button" onclick="register()">Register</button>
         </div>
         <a class="toggle-link" onclick="toggleForms()">Already have an account? Login here</a>
     </div>
@@ -129,7 +129,27 @@
             },
             body: 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password)
         })
+        .then(response => {
+            if(response.toString() === "Valid"){
+                window.location.href = 'index.html';
+            }else{
+                document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">"Error: user or password incorrect"</p>`
+            }
 
+        })
+
+    }
+
+    function register(){
+        const username = document.getElementById("register-username").value;
+        const password = document.getElementById("register-password").value;
+        fetch("/send-register",{
+            method: "POST",
+            headers:{
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)
+        })
     }
 </script>
 

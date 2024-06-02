@@ -1,10 +1,11 @@
-package Zookeeper;
+package com.example.demo.Zookeeper;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
+
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,16 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import Database.Database;
 
 import org.bson.Document;
 
-
+@Configuration
 public class ZookeeperClient {
     private ZooKeeper zoo;
-    CountDownLatch connectionLatch = new CountDownLatch(1);
     private static final String host = "localhost:2181";
-    private Database database = new Database();
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     public ZooKeeper connect() throws IOException, InterruptedException {
@@ -50,6 +49,10 @@ public class ZookeeperClient {
 
     public void close() throws InterruptedException {
         zoo.close();
+    }
+
+    public String getHost(){
+        return host;
     }
 
     public void registerNewServer(String path,String ip, int load) throws KeeperException, InterruptedException{
@@ -91,7 +94,7 @@ public class ZookeeperClient {
         zoo.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
 
-    public List<List<String>> getMessages(String chatName){
+/*    public List<List<String>> getMessages(String chatName){
         List<List<String>> messageList = new ArrayList<>();
 
         MongoCollection<Document> collection = database.GetCollection("Chats", chatName);
@@ -101,8 +104,19 @@ public class ZookeeperClient {
             messageList.add(messageInfo);
         }
         return messageList;
+    }*/
+
+
+    public void updateServerLoad(String path, String ip, int load) throws KeeperException, InterruptedException {
+        String data = ip + ":" + load;
+        Stat stat = zoo.exists(path, false);
+        if (stat != null) {
+            zoo.setData(path, data.getBytes(), stat.getVersion());
+        }
     }
 
+
+    //Method that will receive the parameters from the ClientChatController
     @PostMapping("/send-login")
     public String sendLogin(@RequestBody String username, @RequestBody String password) {
         try {
