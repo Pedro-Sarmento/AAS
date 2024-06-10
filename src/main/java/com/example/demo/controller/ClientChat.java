@@ -2,6 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.Zookeeper.ZookeeperClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -50,8 +55,19 @@ public class ClientChat{
     public String sendRegister(@RequestParam String username, @RequestParam String password) {
         try {
             String bestServer = zooKeeperClient.selectBestServer();
-            String serverUrl = "https://" + bestServer + ":8081/send-register";
-            return restTemplate.postForObject(serverUrl, null, String.class, username,password);
+            String serverUrl = "http://" + bestServer + ":8081/send-register";
+
+            MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+            requestBody.add("username", username);
+            requestBody.add("password", password);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            return restTemplate.postForObject(serverUrl, requestEntity, String.class);
+            /*return restTemplate.postForObject(serverUrl, null, String.class, username,password);*/
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }

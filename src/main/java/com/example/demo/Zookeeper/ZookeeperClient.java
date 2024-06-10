@@ -17,7 +17,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.bson.Document;
 
-@Configuration
+
 public class ZookeeperClient {
     private ZooKeeper zoo;
     private static final String host = "localhost:2181";
@@ -25,7 +25,7 @@ public class ZookeeperClient {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public ZookeeperClient() throws IOException {
-        this.zoo = new ZooKeeper(host, 3000, watchedEvent -> {
+        this.zoo = new ZooKeeper(host, 30000, watchedEvent -> {
             if (watchedEvent.getState() == Watcher.Event.KeeperState.Expired) {
                 try {
                     reconnect();
@@ -37,7 +37,7 @@ public class ZookeeperClient {
     }
 
     private void reconnect() throws IOException{
-        this.zoo = new ZooKeeper(host, 3000, null);
+        this.zoo = new ZooKeeper(host, 30000, null);
     }
 
     public void close() throws InterruptedException {
@@ -48,32 +48,47 @@ public class ZookeeperClient {
         return host;
     }
 
-    public void registerNewServer(String path,String ip, int load) throws KeeperException, InterruptedException{
-        String data = ip + ":" + load;
+    public void registerServer(String path, int load) throws KeeperException, InterruptedException {
+        String data = host + ":" + load;
         Stat stat = zoo.exists(path, false);
-        if(stat == null){
+        if (stat == null) {
             zoo.create(path, data.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-        } else{
+        } else {
             zoo.setData(path, data.getBytes(), stat.getVersion());
         }
     }
 
     public String selectBestServer() throws KeeperException, InterruptedException{
-        List<String> servers= zoo.getChildren("/servers", false);
+        List<String> servers = zoo.getChildren("/servers", false);
+        if (servers.isEmpty()) {
+            throw new IllegalStateException("No servers found in Zookeeper.");
+        }
         String bestServer = null;
         int minLoad = Integer.MAX_VALUE;
         String bestServerIp = null;
-        for(String server : servers){
-            byte[] serverData = zoo.getData("/servers/ +server", false, null);
-            String[] dataParts = new String(serverData).split(":");
-            String ip = dataParts[0];
-            int load = Integer.parseInt(new String(serverData));
-            if(load < minLoad){
-                minLoad = load;
-                bestServer = server;
-                bestServerIp = ip;
+
+        for (String server : servers) {
+            try {
+                byte[] serverData = zoo.getData("/servers/" + server, false, null);
+                String data = new String(serverData);
+                String[] dataParts = data.split(":");
+                String ip = dataParts[0];
+                int load = Integer.parseInt(dataParts[1]);
+
+                if (load < minLoad) {
+                    minLoad = load;
+                    bestServer = server;
+                    bestServerIp = ip;
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // Log any parsing errors
             }
         }
+
+        if (bestServerIp == null) {
+            throw new IllegalStateException("No valid server found with non-null IP.");
+        }
+
         return bestServerIp;
     }
 
@@ -109,7 +124,7 @@ public class ZookeeperClient {
     }
 
 
-    //Method that will receive the parameters from the ClientChatController
+    /*//Method that will receive the parameters from the ClientChatController
     @PostMapping("/send-login")
     public String sendLogin(@RequestBody String username, @RequestBody String password) {
         try {
@@ -130,7 +145,7 @@ public class ZookeeperClient {
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
-    }
+    }*/
 
     public void createNode(String path) throws KeeperException, InterruptedException {
         this.zoo.create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);

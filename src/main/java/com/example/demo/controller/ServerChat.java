@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -25,40 +26,33 @@ import com.example.demo.services.UserService;
 @SpringBootApplication
 @EnableWebSocketMessageBroker
 public class ServerChat implements WebSocketMessageBrokerConfigurer {
-    private final ZookeeperClient zooKeeperClient;
+    private ZookeeperClient zookeeperClient;
     private AtomicInteger currentLoad = new AtomicInteger(0);
     private String serverNodePath;
     private SimpMessagingTemplate messagingTemplate;
 
-
     @Autowired
-    public ServerChat(ZookeeperClient zooKeeperClient) throws IOException {
-        this.zooKeeperClient = zooKeeperClient;
+    public ServerChat(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
     }
 
     public static void main(String[] args) {
         SpringApplication.run(ServerChat.class, args);
     }
-
-    @Autowired
-    public void setMessagingTemplate(@Lazy SimpMessagingTemplate messagingTemplate) {
-        this.messagingTemplate = messagingTemplate;
+    @Bean
+    public ZookeeperClient zooKeeperClient() throws IOException {
+        return new ZookeeperClient();
     }
-
 
     @PostConstruct
     public void init() {
         try {
-            // Verifica se o nó pai existe, caso contrário, cria-o
-            if (!zooKeeperClient.nodeExists("/servers")) {
-                zooKeeperClient.createNode("/servers");
-            }
-
+            this.zookeeperClient = zooKeeperClient();
             serverNodePath = "/servers/server-" + System.currentTimeMillis();
-            zooKeeperClient.registerNewServer(serverNodePath, zooKeeperClient.getHost(), Integer.parseInt(String.valueOf(currentLoad.get())));
+            zookeeperClient.registerServer(serverNodePath, (currentLoad.get()));
             measureSystemLoad();
         } catch (Exception e) {
-            System.out.println("ERRO" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -117,7 +111,7 @@ public class ServerChat implements WebSocketMessageBrokerConfigurer {
     public void updateLoad(boolean increase) {
         int newLoad = increase ? currentLoad.incrementAndGet() : currentLoad.decrementAndGet();
         try {
-            zooKeeperClient.updateServerLoad(serverNodePath, zooKeeperClient.getHost(), Integer.parseInt(String.valueOf(currentLoad.get())));
+            zookeeperClient.updateServerLoad(serverNodePath, zookeeperClient.getHost(), Integer.parseInt(String.valueOf(currentLoad.get())));
         } catch (Exception e) {
             e.printStackTrace();
         }

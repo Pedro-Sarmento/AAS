@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.context.annotation.ComponentScan;
 
+/*
 @SpringBootApplication
 @RestController
 public class Application {
@@ -14,6 +15,7 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 }
+*/
 
 
 
