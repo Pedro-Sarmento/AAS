@@ -1,30 +1,30 @@
 package com.example.demo.controller;
 
 import com.example.demo.Zookeeper.ZookeeperClient;
+import com.example.demo.model.CustomRestTemplateConfiguration;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import com.example.demo.model.User;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
+import org.springframework.web.client.RestTemplate;
 
 
 @RestController
 public class ClientChat{
 
     private final ZookeeperClient zooKeeperClient;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Autowired
-    public ClientChat(ZookeeperClient zooKeeperClient) throws IOException {
+    public ClientChat(ZookeeperClient zooKeeperClient) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, CertificateException {
         this.zooKeeperClient = zooKeeperClient;
+        this.restTemplate = CustomRestTemplateConfiguration.restTemplate();
     }
 
     /*@PostMapping("/send-message")
@@ -40,34 +40,37 @@ public class ClientChat{
     }*/
 
     //Method that will receive the parameters from the front-end and send them to the zookeeperclient
-    @PostMapping("/send-login")
+    @PostMapping("/login-user")
     public String sendLogin(@RequestBody String username, @RequestBody String password) {
         try {
             String bestServer = zooKeeperClient.selectBestServer();
-            String serverUrl = "https://" + bestServer + ":8081/send";
+            String serverUrl = "https://" + bestServer + ":8081/send-login";
             return restTemplate.postForObject(serverUrl, null, String.class, username,password);
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
     }
 
-    @PostMapping("/send-register")
+    @PostMapping("/register-user")
     public String sendRegister(@RequestParam String username, @RequestParam String password) {
         try {
             String bestServer = zooKeeperClient.selectBestServer();
-            String serverUrl = "http://" + bestServer + ":8081/send-register";
+            String serverUrl = "https://" + bestServer + ":8081/send-register";
 
-            MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+            /*MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
             requestBody.add("username", username);
-            requestBody.add("password", password);
+            requestBody.add("password", password);*/
 
-            HttpHeaders headers = new HttpHeaders();
+            /*HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);*/
 
+/*
             return restTemplate.postForObject(serverUrl, requestEntity, String.class);
-            /*return restTemplate.postForObject(serverUrl, null, String.class, username,password);*/
+*/
+
+            return restTemplate.postForObject(serverUrl, null, String.class, username,password);
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
