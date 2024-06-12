@@ -143,14 +143,22 @@
     function register(){
         const username = document.getElementById("register-username").value;
         const password = document.getElementById("register-password").value;
-        fetch("/register-user",{
-            method: "POST",
-            headers:{
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)
-        })
     }
+    fetch("/register-user",{
+        method: "POST",
+        headers:{
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)
+    })
+    .then(response => {
+        if(response.toString() === "Valid"){
+            window.location.href = 'index.html';
+        }else{
+            document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">"Error: user already esxists"</p>`
+        }
+
+    })
 </script>
 
 </body>

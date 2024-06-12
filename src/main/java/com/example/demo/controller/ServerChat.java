@@ -21,11 +21,13 @@ public class ServerChat {
     private final SimpMessagingTemplate messagingTemplate;
     private AtomicInteger currentLoad = new AtomicInteger(0);
     private String serverNodePath;
+    private final UserService userService;
 
     @Autowired
-    public ServerChat(ZookeeperClient zookeeperClient, SimpMessagingTemplate messagingTemplate) {
+    public ServerChat(ZookeeperClient zookeeperClient, SimpMessagingTemplate messagingTemplate, UserService userService) {
         this.zookeeperClient = zookeeperClient;
         this.messagingTemplate = messagingTemplate;
+        this.userService = userService;
     }
 
     @PostConstruct
@@ -51,23 +53,25 @@ public class ServerChat {
         messagingTemplate.convertAndSend(destination, message);
     }
 
-    @PostMapping("/send-login")
+    /*@PostMapping("/send-login")
     public String sendLogin(@RequestParam String username, @RequestParam String password) {
         User client = UserService.findByUsername(username);
         return (client != null) ? "Valid" : "Invalid";
     }
-
+*/
     @PostMapping("/send-register")
     public String sendRegister(@RequestParam String username, @RequestParam String password) {
-        User usercheck = UserService.findByUsername(username);
+        /*User usercheck = UserService.findByUsername(username);
         if (usercheck == null) {
             User newUser = new User(username, password);
             UserService.saveUser(newUser);
             return "The User has been Registered";
         } else {
-            return "User already exists";
+            return "User already exists";*/
+        User newUser = new User(username, password);
+        userService.saveUser(newUser);
+        return "Valid";
         }
-    }
 
     private void updateLoad(boolean increase) {
         int newLoad = increase ? currentLoad.incrementAndGet() : currentLoad.decrementAndGet();

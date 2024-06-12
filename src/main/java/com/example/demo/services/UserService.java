@@ -11,27 +11,28 @@ import java.util.List;
 @Service
 public class UserService {
     @Autowired
-    private static UserRepository repository;
+    private UserRepository repository;
 
-    public static void saveUser(User user){
+    public void saveUser(User user){
         repository.save(user);
     }
 
-    public static void deleteUser(User user){
+    public void deleteUser(User user){
         repository.delete(user);
     }
 
-    public static List<User> getAllUsers(){
+    public List<User> getAllUsers(){
         return repository.findAll();
     }
 
-    public static User findByUsername(String username){
-        List<User> users = getAllUsers();
+    public User findByUsername(String username){
+        /*List<User> users = getAllUsers();
         for(User user: users){
             if(user.getUsername().equals(username)){
                 return user;
             }
         }
-        return null;
+        return null;*/
+        return repository.findByUsername(username);
     }
 }
