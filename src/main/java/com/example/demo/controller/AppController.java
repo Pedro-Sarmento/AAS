@@ -10,4 +10,7 @@ public class AppController{
     public String home(){
         return "Login-Register";
     }
+
+    @GetMapping("/index.html")
+    public String index(){ return "index";}
 }

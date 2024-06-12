@@ -129,21 +129,25 @@
             },
             body: 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password)
         })
-        .then(response => {
-            if(response.toString() === "Valid"){
+        .then(response => response.text())
+        .then(responseText => {
+            if (responseText === "Valid") {
                 window.location.href = 'index.html';
-            }else{
-                document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">"Error: user or password incorrect"</p>`
+            } else {
+                document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">Error: User or password incorrect.</p>`;
             }
-
         })
+        .catch(error => {
+            console.error("Error:", error);
+            document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">An error occurred. Please try again later.</p>`;
+        });
 
     }
 
     function register(){
         const username = document.getElementById("register-username").value;
         const password = document.getElementById("register-password").value;
-    }
+
     fetch("/register-user",{
         method: "POST",
         headers:{
@@ -151,14 +155,20 @@
         },
         body: "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)
     })
-    .then(response => {
-        if(response.toString() === "Valid"){
+    .then(response => response.text())
+    .then(responseText => {
+        if (responseText === "Valid") {
             window.location.href = 'index.html';
-        }else{
-            document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">"Error: user already esxists"</p>`
+        } else {
+            document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">Error: User already exists.</p>`;
         }
-
     })
+    .catch(error => {
+        console.error("Error:", error);
+        document.querySelector('.toggle-link').innerHTML += `<p class="message outgoing">An error occurred. Please try again later.</p>`;
+    });
+    }
+
 </script>
 
 </body>

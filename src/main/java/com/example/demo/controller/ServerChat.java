@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.Zookeeper.ZookeeperClient;
@@ -53,25 +54,39 @@ public class ServerChat {
         messagingTemplate.convertAndSend(destination, message);
     }
 
-    /*@PostMapping("/send-login")
-    public String sendLogin(@RequestParam String username, @RequestParam String password) {
-        User client = UserService.findByUsername(username);
-        return (client != null) ? "Valid" : "Invalid";
+    @PostMapping("/send-login")
+    public ResponseEntity<String> sendLogin(@RequestParam String username, @RequestParam String password) {
+        try {
+            User client = userService.findByUsername(username);
+            return ResponseEntity.ok("Valid");
+        }
+        catch (Exception e){
+            return ResponseEntity.ok("Invalid");
+        }
     }
-*/
-    @PostMapping("/send-register")
+
+
+    /*@PostMapping("/send-register")
     public String sendRegister(@RequestParam String username, @RequestParam String password) {
-        /*User usercheck = UserService.findByUsername(username);
+        *//*User usercheck = UserService.findByUsername(username);
         if (usercheck == null) {
             User newUser = new User(username, password);
             UserService.saveUser(newUser);
             return "The User has been Registered";
         } else {
-            return "User already exists";*/
+            return "User already exists";*//*
         User newUser = new User(username, password);
         userService.saveUser(newUser);
         return "Valid";
-        }
+        }*/
+    @PostMapping("/send-register")
+    public ResponseEntity<String> sendRegister(@RequestParam String username, @RequestParam String password) {
+        User newUser = new User(username, password);
+        userService.saveUser(newUser);
+        return ResponseEntity.ok("Valid");
+    }
+
+
 
     private void updateLoad(boolean increase) {
         int newLoad = increase ? currentLoad.incrementAndGet() : currentLoad.decrementAndGet();
