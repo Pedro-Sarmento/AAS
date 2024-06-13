@@ -28,17 +28,37 @@ public class ClientChat{
         this.zooKeeperClient = zooKeeperClient;
     }
 
-    /*@PostMapping("/send-message")
-    public String sendMessage(@RequestParam String from, @RequestParam String to, @RequestParam String content) {
+    @PostMapping("/send-message")
+    public ResponseEntity<String>  sendMessage(@RequestParam String recipient, @RequestParam String message) {
         try {
             String bestServer = zooKeeperClient.selectBestServer();
-            String serverUrl = "http://" + bestServer + ":8080/send";
-            restTemplate.postForObject(serverUrl, null, String.class, from, to, content);
-            return "Message sent to " + to + " via server " + bestServer;
+            String serverUrl = "https://" + bestServer + ":8081/send";
+
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("recipient", recipient);
+            requestBody.put("message", message);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            // Convert the requestBody to a URL-encoded format
+            StringBuilder encodedBody = new StringBuilder();
+            for (Map.Entry<String, String> entry : requestBody.entrySet()) {
+                if (encodedBody.length() > 0) {
+                    encodedBody.append("&");
+                }
+                encodedBody.append(URLEncoder.encode(entry.getKey(), "UTF-8"))
+                        .append("=")
+                        .append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+            }
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(encodedBody.toString(), headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(serverUrl, requestEntity, String.class);
+            return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
-            return "Error: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
-    }*/
+    }
 
     //Method that will receive the parameters from the front-end and send them to the zookeeperclient
     @PostMapping("/login-user")

@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.example.demo.services.MessageService;
 import com.example.demo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +20,8 @@ public class Application {
     private SimpMessagingTemplate messagingTemplate;
     @Autowired
     private UserService userService;
+    @Autowired
+    private MessageService messageService;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -31,7 +34,7 @@ public class Application {
 
     @Bean
     public ServerChat serverChat(ZookeeperClient zookeeperClient) throws IOException {
-        return new ServerChat(zookeeperClient, messagingTemplate, userService);
+        return new ServerChat(zookeeperClient, messagingTemplate, userService, messageService);
     }
 }
 

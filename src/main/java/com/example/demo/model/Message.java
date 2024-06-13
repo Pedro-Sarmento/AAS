@@ -7,21 +7,17 @@ import java.text.SimpleDateFormat;
 
 @Document(collection = "Messages")
 public class Message {
-    private String from;
     private String content;
     private String timestamp;
 
-    public Message(String from, String content) {
-
+    public Message(String content) {
+        this.content = content;
     }
 
     public void setTimestamp() {
         this.timestamp = new SimpleDateFormat("HH:mm,MM-dd").format(new Date());
     }
 
-    public String getFrom() {
-        return this.from;
-    }
 
     public String getContent() {
         return this.content;

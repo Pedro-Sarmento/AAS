@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.services.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,12 +24,14 @@ public class ServerChat {
     private AtomicInteger currentLoad = new AtomicInteger(0);
     private String serverNodePath;
     private final UserService userService;
+    private final MessageService messageService;
 
     @Autowired
-    public ServerChat(ZookeeperClient zookeeperClient, SimpMessagingTemplate messagingTemplate, UserService userService) {
+    public ServerChat(ZookeeperClient zookeeperClient, SimpMessagingTemplate messagingTemplate, UserService userService, MessageService messageService) {
         this.zookeeperClient = zookeeperClient;
         this.messagingTemplate = messagingTemplate;
         this.userService = userService;
+        this.messageService = messageService;
     }
 
     @PostConstruct
@@ -47,11 +50,12 @@ public class ServerChat {
     }
 
     @PostMapping("/send")
-    public void sendMessage(@RequestParam String from, @RequestParam String to, @RequestParam String content) {
-        String destination = "/topic/messages/" + to;
-        Message message = new Message(from, content);
+    public void sendMessage(@RequestParam String recipient, @RequestParam String message) {
+        String destination = "/topic/messages/" + recipient;
+        Message mensagem = new Message(message);
         updateLoad(true);
         messagingTemplate.convertAndSend(destination, message);
+        messageService.saveMessage(mensagem);
     }
 
     @PostMapping("/send-login")
